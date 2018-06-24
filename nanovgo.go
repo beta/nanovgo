@@ -28,13 +28,6 @@ package nanovgo
 */
 import "C"
 
-// Context is a NanoVGo context for vector graphics rendering.
-type Context C.NVGcontext
-
-func (ctx *Context) c() *C.NVGcontext {
-	return (*C.NVGcontext)(ctx)
-}
-
 // CreateFlag is a flag for creating NanoVGo contexts.
 type CreateFlag int
 
@@ -216,3 +209,116 @@ const (
 	ImagePremultiplied   ImageFlag = C.NVG_IMAGE_PREMULTIPLIED
 	ImageNearest         ImageFlag = C.NVG_IMAGE_NEAREST
 )
+
+// Context is a NanoVGo context for vector graphics rendering.
+type Context C.NVGcontext
+
+func (ctx *Context) c() *C.NVGcontext {
+	return (*C.NVGcontext)(ctx)
+}
+
+// BeginFrame begins drawing a new frame.
+//
+// Calls to NanoVGo drawing API should be wrapped in Context.BeginFrame() and
+// Context.EndFrame(). Context.BeginFrame() defines the size of the window to
+// render to in relation to currently set viewport (i.e. glViewport on GL
+// backends). Device pixel ratio allows to control the rendering on Hi-DPI
+// devices.
+//
+// For example, GLFW returns two dimensions for an opened window: window size
+// and framebuffer size. In that case you would set windowWidth/Height to the
+// window size, deivcePixelRatio to frameBufferWidth / windowWidth.
+func (ctx *Context) BeginFrame(windowWidth, windowHeight, devicePixelRatio float32) {
+	C.nvgBeginFrame(ctx.c(), C.float(windowWidth), C.float(windowHeight), C.float(devicePixelRatio))
+}
+
+// CancelFrame cancels drawing the current frame.
+func (ctx *Context) CancelFrame() {
+	C.nvgCancelFrame(ctx.c())
+}
+
+// EndFrame ends drawing and flushes remaining render state.
+func (ctx *Context) EndFrame() {
+	C.nvgEndFrame(ctx.c())
+}
+
+// Composite operations.
+//
+// The composite operations in NanoVGo are modeled after HTML Canvas API, and
+// the blend func is based on OpenGL (see corresponding manuals for more info).
+// The colors in the blending state have premultiplied alpha.
+
+// GlobalCompositeOperation sets the composite operation. op should be one of
+// CompositeOperation.
+func (ctx *Context) GlobalCompositeOperation(op CompositeOperation) {
+	C.nvgGlobalCompositeOperation(ctx.c(), C.int(op))
+}
+
+// GlobalCompositeBlendFunc sets the composite operation with custom pixel
+// arithmetic. sFactor and dFactor should be one of BlendFactor.
+func (ctx *Context) GlobalCompositeBlendFunc(sFactor, dFactor BlendFactor) {
+	C.nvgGlobalCompositeBlendFunc(ctx.c(), C.int(sFactor), C.int(dFactor))
+}
+
+// GlobalCompositeBlendFuncSeparate sets the composite operation with custom
+// pixel arithmetic for RGB and alpha components separately. The parameters
+// should be one of BlendFactor.
+func (ctx *Context) GlobalCompositeBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha BlendFactor) {
+	C.nvgGlobalCompositeBlendFuncSeparate(ctx.c(), C.int(srcRGB), C.int(dstRGB), C.int(srcAlpha), C.int(dstAlpha))
+}
+
+// Color utils.
+//
+// Colors in NanoVGo are stored as unsigned ints in ABGR format.
+
+// RGB returns a color value from red, green and blue values. Alpha will be set
+// to 255 (1.0f).
+func RGB(r, g, b uint8) Color {
+	return Color(C.nvgRGB(C.uchar(r), C.uchar(g), C.uchar(b)))
+}
+
+// RGBf returns a color value from red, green and blue values. Alpha will be set
+// to 1.0f.
+func RGBf(r, g, b float32) Color {
+	return Color(C.nvgRGBf(C.float(r), C.float(g), C.float(b)))
+}
+
+// RGBA returns a color value from red, green, blue and alpha values.
+func RGBA(r, g, b, a uint8) Color {
+	return Color(C.nvgRGBA(C.uchar(r), C.uchar(g), C.uchar(b), C.uchar(a)))
+}
+
+// RGBAf returns a color value from red, green, blue and alpha values.
+func RGBAf(r, g, b, a float32) Color {
+	return Color(C.nvgRGBAf(C.float(r), C.float(g), C.float(b), C.float(a)))
+}
+
+// LerpRGBA linearly interpolates from c0 to c1, and returns resulting color
+// value.
+func LerpRGBA(c0, c1 Color, u float32) Color {
+	return Color(C.nvgLerpRGBA(c0.c(), c1.c(), C.float(u)))
+}
+
+// TransRGBA sets transparency of c, and returns the resulting color value.
+func TransRGBA(c Color, a uint8) Color {
+	return Color(C.nvgTransRGBA(c.c(), C.uchar(a)))
+}
+
+// TransRGBAf sets transparency of c, and returns the resulting color value.
+func TransRGBAf(c Color, a float32) Color {
+	return Color(C.nvgTransRGBAf(c.c(), C.float(a)))
+}
+
+// HSL returns a color value specified by hue, saturation and lightness.
+//
+// HSL values are all in range [0..1], alpha will be set to 255.
+func HSL(h, s, l float32) Color {
+	return Color(C.nvgHSL(C.float(h), C.float(s), C.float(l)))
+}
+
+// HSLA returns a color value specified by hue, saturation, lightness and alpha.
+//
+// HSL values are all in range [0..1], alpah in range [0..255].
+func HSLA(h, s, l float32, a uint8) Color {
+	return Color(C.nvgHSLA(C.float(h), C.float(s), C.float(l), C.uchar(a)))
+}
