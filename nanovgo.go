@@ -117,11 +117,18 @@ type LineCap int
 
 // Line caps.
 const (
-	Butt   LineCap = C.NVG_BUTT
-	Round  LineCap = C.NVG_ROUND
-	Square LineCap = C.NVG_SQUARE
-	Bevel  LineCap = C.NVG_BEVEL
-	Miter  LineCap = C.NVG_MITER
+	Butt     LineCap = C.NVG_BUTT
+	RoundCap LineCap = C.NVG_ROUND
+	Square   LineCap = C.NVG_SQUARE
+)
+
+// LineJoin specifies the style of sharp path corners.
+type LineJoin int
+
+const (
+	Miter     LineJoin = C.NVG_MITER
+	RoundJoin LineJoin = C.NVG_ROUND
+	Bevel     LineJoin = C.NVG_BEVEL
 )
 
 // Align indicates how text should be aligned horizontally or vertically.
@@ -321,4 +328,101 @@ func HSL(h, s, l float32) Color {
 // HSL values are all in range [0..1], alpah in range [0..255].
 func HSLA(h, s, l float32, a uint8) Color {
 	return Color(C.nvgHSLA(C.float(h), C.float(s), C.float(l), C.uchar(a)))
+}
+
+// State handling.
+//
+// NanoVGo contains states which represent how paths will be rendered. The state
+// contains transform, fill and stroke styles, text and font styles, and scissor
+// clipping.
+
+// Save pushes and saves the current render state into a state stack.
+//
+// A matching Context.Restore() must be used to restore the state.
+func (ctx *Context) Save() {
+	C.nvgSave(ctx.c())
+}
+
+// Restore pops and restores the current render state.
+func (ctx *Context) Restore() {
+	C.nvgRestore(ctx.c())
+}
+
+// Reset resets current render state to default values. This does not affect the
+// render state stack.
+func (ctx *Context) Reset() {
+	C.nvgReset(ctx.c())
+}
+
+// Render styles.
+//
+// Fill and stroke render style can be either a solid color or a paint which is
+// a gradient or a pattern. Solid color is simply defined as a color value,
+// different kinds of paints can be created using Context.LinearGradient(),
+// Context.BoxGradient(), Context.RadialGradient() and Context.ImagePattern().
+//
+// Current render style can be saved and restored using Context.Save() and
+// Context.Restore().
+
+// ShapeAntialias sets whether to draw antialias for Context.Stroke() and
+// Context.Fill(). It's enabled by default.
+func (ctx *Context) ShapeAntialias(enabled bool) {
+	var cEnabled int
+	if enabled {
+		cEnabled = 1
+	}
+	C.nvgShapeAntiAlias(ctx.c(), C.int(cEnabled))
+}
+
+// StrokeColor sets the current stroke style to a solid color.
+func (ctx *Context) StrokeColor(color Color) {
+	C.nvgStrokeColor(ctx.c(), color.c())
+}
+
+// StrokePaint sets the current stroke style to a paint, which can be one of the
+// gradients or a pattern.
+func (ctx *Context) StrokePaint(paint Paint) {
+	C.nvgStrokePaint(ctx.c(), paint.c())
+}
+
+// FillColor sets the current fill style to a solid color.
+func (ctx *Context) FillColor(color Color) {
+	C.nvgFillColor(ctx.c(), color.c())
+}
+
+// FillPaint sets the current fill style to a pint, which can be one of the
+// gradients or a pattern.
+func (ctx *Context) FillPaint(paint Paint) {
+	C.nvgFillPaint(ctx.c(), paint.c())
+}
+
+// MiterLimit sets the miter limit of the stroke style.
+//
+// Miter limit controls when a sharp corner is beveled.
+func (ctx *Context) MiterLimit(limit float32) {
+	C.nvgMiterLimit(ctx.c(), C.float(limit))
+}
+
+// StrokeWidth sets the stroke width of the stroke style.
+func (ctx *Context) StrokeWidth(size float32) {
+	C.nvgStrokeWidth(ctx.c(), C.float(size))
+}
+
+// LineCap sets how the end of the line (cap) is drawn. cap can be one of Butt
+// (default), RoundCap and Square.
+func (ctx *Context) LineCap(cap LineCap) {
+	C.nvgLineCap(ctx.c(), C.int(cap))
+}
+
+// LineJoin sets how sharp path corners are drawn. join can be one of Miter
+// (default), RoundJoin and Bevel.
+func (ctx *Context) LineJoin(join LineJoin) {
+	C.nvgLineJoin(ctx.c(), C.int(join))
+}
+
+// GlobalAlpha sets the transparency applied to all rendered shapes.
+//
+// Already transparent paths will get proportionally more transparent as well.
+func (ctx *Context) GlobalAlpha(alpha float32) {
+	C.nvgGlobalAlpha(ctx.c(), C.float(alpha))
 }
