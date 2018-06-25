@@ -125,6 +125,7 @@ const (
 // LineJoin specifies the style of sharp path corners.
 type LineJoin int
 
+// Line joins.
 const (
 	Miter     LineJoin = C.NVG_MITER
 	RoundJoin LineJoin = C.NVG_ROUND
@@ -425,4 +426,256 @@ func (ctx *Context) LineJoin(join LineJoin) {
 // Already transparent paths will get proportionally more transparent as well.
 func (ctx *Context) GlobalAlpha(alpha float32) {
 	C.nvgGlobalAlpha(ctx.c(), C.float(alpha))
+}
+
+// Transforms.
+//
+// The paths, gradients, patterns and scissor regions are transformed by an
+// transformation matrix at the time when they are passed to the API. The
+// current transformation matrix is an affine matrix:
+//
+//     [sx kx tx]
+//     [ky sy ty]
+//     [ 0  0  1]
+//
+// Where: sx,sy define scaling, kx,ky skewing, and tx,ty translation. The last
+// row is assumed to be 0,0,1 and is not stored.
+//
+// Apart from Context.ResetTransform(), each transformation function first
+// creates specific transformation matrix and pre-multiplies the current
+// transformation by it.
+//
+// Current coordinate system (transformation) can be saved and restored using
+// Context.Save() and Context.Restore().
+
+// ResetTransform resets the current transform to an indentity matrix.
+func (ctx *Context) ResetTransform() {
+	C.nvgResetTransform(ctx.c())
+}
+
+// Transform premultiplies the current coordinate system by a matrix.
+//
+// The parameters are interpreted as a matrix as follows:
+//
+//     [a c e]
+//     [b d f]
+//     [0 0 1]
+func (ctx *Context) Transform(a, b, c, d, e, f float32) {
+	C.nvgTransform(ctx.c(), C.float(a), C.float(b), C.float(c), C.float(d), C.float(e), C.float(f))
+}
+
+// Translate translates the current coordinate system.
+func (ctx *Context) Translate(x, y float32) {
+	C.nvgTranslate(ctx.c(), C.float(x), C.float(y))
+}
+
+// Rotate rotates the current coordinate system. angle is specified in radians.
+func (ctx *Context) Rotate(angle float32) {
+	C.nvgRotate(ctx.c(), C.float(angle))
+}
+
+// SkewX skews the current coordinate system along the X axis. angle is
+// specified in radians.
+func (ctx *Context) SkewX(angle float32) {
+	C.nvgSkewX(ctx.c(), C.float(angle))
+}
+
+// SkewY skews the current coordinate system along the Y axis. angle is
+// specified in radians.
+func (ctx *Context) SkewY(angle float32) {
+	C.nvgSkewY(ctx.c(), C.float(angle))
+}
+
+// Scale scales the current coordinate system.
+func (ctx *Context) Scale(x, y float32) {
+	C.nvgScale(ctx.c(), C.float(x), C.float(y))
+}
+
+// CurrentTransform returns the top part (a-f) of the current transformation
+// matrix.
+//
+//     [a c e]
+//     [b d f]
+//     [0 0 1]
+func (ctx *Context) CurrentTransform() [6]float32 {
+	cXform := make([]C.float, 0, 6)
+	C.nvgCurrentTransform(ctx.c(), &cXform[0])
+	var xform [6]float32
+	for i, num := range cXform {
+		xform[i] = float32(num)
+	}
+	return xform
+}
+
+// The following functions can be used to make calculations on 2x3
+// transformation matrices. A 2x3 matrix is represented as [6]float32.
+
+// TransformIdentity sets the transform to an identity matrix.
+func TransformIdentity(dst *[6]float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformIdentity(&cDst[0])
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformTranslate sets the transform to a translation matrix.
+func TransformTranslate(dst *[6]float32, tx, ty float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformTranslate(&cDst[0], C.float(tx), C.float(ty))
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformScale sets the transform to a scale matrix.
+func TransformScale(dst *[6]float32, sx, sy float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformScale(&cDst[0], C.float(sx), C.float(sy))
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformRotate sets the transform to a rotate matrix. angle is specified in
+// radians.
+func TransformRotate(dst *[6]float32, angle float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformRotate(&cDst[0], C.float(angle))
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformSkewX sets the transform to a skew-x matrix. angle is specified in
+// radians.
+func TransformSkewX(dst *[6]float32, angle float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformSkewX(&cDst[0], C.float(angle))
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformSkewY sets the transform to a skew-y matrix. angle is specified in
+// radians.
+func TransformSkewY(dst *[6]float32, angle float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+
+	C.nvgTransformSkewY(&cDst[0], C.float(angle))
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformMultiply sets the transform to the result of multiplication of the
+// two transforms, of A = A*B.
+func TransformMultiply(dst *[6]float32, src [6]float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+	cSrc := make([]C.float, 0, 6)
+	for _, num := range src {
+		cSrc = append(cSrc, C.float(num))
+	}
+
+	C.nvgTransformMultiply(&cDst[0], &cSrc[0])
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformPremultiply sets the transform to the result of multiplication of
+// the two transforms, of A = B*A.
+func TransformPremultiply(dst *[6]float32, src [6]float32) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+	cSrc := make([]C.float, 0, 6)
+	for _, num := range src {
+		cSrc = append(cSrc, C.float(num))
+	}
+
+	C.nvgTransformPremultiply(&cDst[0], &cSrc[0])
+
+	for i, num := range cDst {
+		(*dst)[i] = float32(num)
+	}
+}
+
+// TransformInverse sets dst to the inverse of src. Returns true if the inverse
+// could be calculated, else false.
+func TransformInverse(dst *[6]float32, src [6]float32) (succeeded bool) {
+	cDst := make([]C.float, 0, 6)
+	for _, num := range *dst {
+		cDst = append(cDst, C.float(num))
+	}
+	cSrc := make([]C.float, 0, 6)
+	for _, num := range src {
+		cSrc = append(cSrc, C.float(num))
+	}
+
+	succeeded = int(C.nvgTransformInverse(&cDst[0], &cSrc[0])) == 1
+	if succeeded {
+		for i, num := range cDst {
+			(*dst)[i] = float32(num)
+		}
+	}
+	return
+}
+
+// TransformPoint transforms a point (srcX,srcY) by xform.
+func TransformPoint(xform [6]float32, srcX, srcY float32) (dstX, dstY float32) {
+	cXform := make([]C.float, 0, 6)
+	for _, num := range xform {
+		cXform = append(cXform, C.float(num))
+	}
+	var cDstX, cDstY C.float
+
+	C.nvgTransformPoint(&cDstX, &cDstY, &cXform[0], C.float(srcX), C.float(srcY))
+
+	dstX, dstY = float32(cDstX), float32(cDstY)
+	return
+}
+
+// DegToRad converts degrees to radians.
+func DegToRad(deg float32) float32 {
+	return float32(C.nvgDegToRad(C.float(deg)))
+}
+
+// RadToDeg converts radians to degrees.
+func RadToDeg(rad float32) float32 {
+	return float32(C.nvgRadToDeg(C.float(rad)))
 }
