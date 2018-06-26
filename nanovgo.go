@@ -676,12 +676,16 @@ type Image struct {
 	ctx    *Context
 }
 
+func (image *Image) c() C.int {
+	return image.cImage
+}
+
 // CreateImage creates an image by loading it from the disk from filename.
 // Returns a handle to the image.
-func (ctx *Context) CreateImage(filename string, imageFlags ImageFlag) Image {
+func (ctx *Context) CreateImage(filename string, imageFlags ImageFlag) *Image {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
-	return Image{
+	return &Image{
 		cImage: C.nvgCreateImage(ctx.c(), cFilename, C.int(imageFlags)),
 		ctx:    ctx,
 	}
@@ -689,50 +693,50 @@ func (ctx *Context) CreateImage(filename string, imageFlags ImageFlag) Image {
 
 // CreateImageMem creates an image by loading it from data, a chunk of memory.
 // Returns a handle to the image.
-func (ctx *Context) CreateImageMem(imageFlags ImageFlag, data []uint8) Image {
+func (ctx *Context) CreateImageMem(imageFlags ImageFlag, data []uint8) *Image {
 	var dataLen = len(data)
 	var cData = make([]C.uchar, 0, dataLen)
 	for _, d := range data {
 		cData = append(cData, C.uchar(d))
 	}
-	return Image{
+	return &Image{
 		cImage: C.nvgCreateImageMem(ctx.c(), C.int(imageFlags), &cData[0], C.int(dataLen)),
 		ctx:    ctx,
 	}
 }
 
 // CreateImageRGBA creates an image from data. Returns a handle to the image.
-func (ctx *Context) CreateImageRGBA(width, height int, imageFlags ImageFlag, data []uint8) Image {
+func (ctx *Context) CreateImageRGBA(width, height int, imageFlags ImageFlag, data []uint8) *Image {
 	var cData = make([]C.uchar, 0, len(data))
 	for _, d := range data {
 		cData = append(cData, C.uchar(d))
 	}
-	return Image{
+	return &Image{
 		cImage: C.nvgCreateImageRGBA(ctx.c(), C.int(width), C.int(height), C.int(imageFlags), &cData[0]),
 		ctx:    ctx,
 	}
 }
 
 // UpdateImage updates image data.
-func (image Image) UpdateImage(data []uint8) {
+func (image *Image) UpdateImage(data []uint8) {
 	var cData = make([]C.uchar, 0, len(data))
 	for _, d := range data {
 		cData = append(cData, C.uchar(d))
 	}
-	C.nvgUpdateImage(image.ctx.c(), image.cImage, &cData[0])
+	C.nvgUpdateImage(image.ctx.c(), image.c(), &cData[0])
 }
 
 // Size returns the dimensions of image.
-func (image Image) Size() (width, height int) {
+func (image *Image) Size() (width, height int) {
 	var cWidth, cHeight C.int
-	C.nvgImageSize(image.ctx.c(), image.cImage, &cWidth, &cHeight)
+	C.nvgImageSize(image.ctx.c(), image.c(), &cWidth, &cHeight)
 	width, height = int(cWidth), int(cHeight)
 	return
 }
 
 // Delete deletes image.
-func (image Image) Delete() {
-	C.nvgDeleteImage(image.ctx.c(), image.cImage)
+func (image *Image) Delete() {
+	C.nvgDeleteImage(image.ctx.c(), image.c())
 }
 
 // Paints.
