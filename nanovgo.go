@@ -67,31 +67,10 @@ func (color Color) c() C.NVGcolor {
 }
 
 // Paint is a paint style used for painting.
-type Paint struct {
-	XForm      [6]float32
-	Extent     [2]float32
-	Radius     float32
-	Feather    float32
-	InnerColor Color
-	OuterColor Color
-	Image      int
-}
+type Paint C.NVGpaint
 
 func (paint Paint) c() C.NVGpaint {
-	cPaint := C.NVGpaint{
-		radius:     C.float(paint.Radius),
-		feather:    C.float(paint.Feather),
-		innerColor: paint.InnerColor.c(),
-		outerColor: paint.OuterColor.c(),
-		image:      C.int(paint.Image),
-	}
-	for i := 0; i < 6; i++ {
-		cPaint.xform[i] = C.float(paint.XForm[i])
-	}
-	for i := 0; i < 2; i++ {
-		cPaint.extent[i] = C.float(paint.Extent[i])
-	}
-	return cPaint
+	return C.NVGpaint(paint)
 }
 
 // Winding specifies the direction of winding.
@@ -754,4 +733,57 @@ func (image Image) Size() (width, height int) {
 // Delete deletes image.
 func (image Image) Delete() {
 	C.nvgDeleteImage(image.ctx.c(), image.cImage)
+}
+
+// Paints.
+//
+// NanoVGo supports four types of paints: linear gradient, box gradient, radial
+// gradient and image pattern. These can be used as paints for strokes and
+// fills.
+
+// LinearGradient creates and returns a linear gradient. Parameters
+// (startX,startY)-(endX,endY) specify the start and end coordinates of the
+// linear gradient, startColor specifies the start color and endColor the end
+// color.
+//
+// The gradient is transformed by the current transform when it is passed to
+// Context.FillPaint() or Context.StrokePaint().
+func (ctx *Context) LinearGradient(startX, startY, endX, endY float32, startColor, endColor Color) Paint {
+	return Paint(C.nvgLinearGradient(ctx.c(), C.float(startX), C.float(startY), C.float(endX), C.float(endY), startColor.c(), endColor.c()))
+}
+
+// BoxGradient creates and returns a box gradient. A box gradient is a feathered
+// rounded rectangle, it is useful for rendering drop shadows or highlights for
+// boxes. Parameters (x,y) define the top-left corner of the rectangle,
+// (width,height) define the size of the rectangle, radius defines the corner
+// radius, and feather defines how blurry the border of the rectangle is.
+// innerColor specifies the inner color and outerColor the outer color of the
+// gradient.
+//
+// The gradient is transformed by the current transform when it is passed to
+// Context.FillPaint() or Context.StrokePaint().
+func (ctx *Context) BoxGradient(x, y, width, height, radius, feather float32, innerColor, outerColor Color) Paint {
+	return Paint(C.nvgBoxGradient(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height), C.float(radius), C.float(feather), innerColor.c(), outerColor.c()))
+}
+
+// RadialGradient creates and returns a radian gradient. Parameters
+// (centerX,centerY) specify the center, innerRadius and outerRadius specify the
+// inner and outer radius of the gradient, startColor specifies the start color
+// and endColor the end color.
+//
+// The gradient is transformed by the current transform when it is passed to
+// Context.FillPaint() or Context.StrokePaint().
+func (ctx *Context) RadialGradient(centerX, centerY, innerRadius, outerRadius float32, startColor, endColor Color) Paint {
+	return Paint(C.nvgRadialGradient(ctx.c(), C.float(centerX), C.float(centerY), C.float(innerRadius), C.float(outerRadius), startColor.c(), endColor.c()))
+}
+
+// ImagePattern creates and returns an image pattern. Parameters (x,y) specify
+// the left-top location of the image pattern, (imageWidth,imageHeight) the size
+// of one image, angle rotation around the top-left corner, image is handle to
+// the image to render.
+//
+// The gradient is transformed by the current transform when it is passed to
+// Context.FillPaint() or Context.StrokePaint().
+func (ctx *Context) ImagePattern(x, y, imageWidth, imageHeight, angle float32, image Image, alpha float32) Paint {
+	return Paint(C.nvgImagePattern(ctx.c(), C.float(x), C.float(y), C.float(imageWidth), C.float(imageHeight), C.float(angle), image.cImage, C.float(alpha)))
 }
