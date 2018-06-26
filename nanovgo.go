@@ -16,6 +16,9 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+// Package nanovgo is a Go binding for NanoVG
+// (https://github.com/memononen/nanovg), a small antialiased vector graphics
+// rendering library for OpenGL.
 package nanovgo
 
 /*
