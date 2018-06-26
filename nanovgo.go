@@ -921,3 +921,246 @@ func (ctx *Context) Fill() {
 func (ctx *Context) Stroke() {
 	C.nvgStroke(ctx.c())
 }
+
+// Text.
+//
+// NanoVGo allows you to load .ttf files and use the font to render text.
+//
+// The appearance of the text can be defined by setting the current text style
+// and by specifying the fill color. Common text and font settings such as font
+// size, letter spacing and text align are supported. Font blur allows you to
+// create simple text effects such as drop shadows.
+//
+// At render time the font face can be set based on the font handles or name.
+//
+// Font measure functions return values in local space, the calculations are
+// carried in the same resolution as the final rendering. This is done because
+// the text glyph positions are snapped to the nearest pixel sharp rendering.
+//
+// The local space means that values are not rotated or scale as per the current
+// transformation. For example if you set font size to 12, which would mean that
+// line height is 16, then regardless of the current scaling and rotatino, the
+// returned line height is always 16. Some measures may vary because of the
+// scaling since aforementioned pixel snapping.
+//
+// While this may sound a little odd, the setup allows you to always render the
+// same way regardless of scaling. I.e. following works regardless of scaling:
+//
+//     text := "Text me up."
+//     ctx.TextBounds(x, y, text, nil, bounds)
+//     ctx.BeginPath()
+//     ctx.RoundedRect(bounds[0], bounds[1], bounds[2]-bounds[0], bounds[3]-bounds[1])
+//     ctx.Fill()
+//
+// Note: currently only solid color fill is supported for text.
+
+// Font is a handle to a created font.
+type Font struct {
+	cFont C.int
+}
+
+func (font *Font) c() C.int {
+	return font.cFont
+}
+
+// CreateFont creates a font by loading it from the disk from filename. Returns
+// a handle to the font.
+func (ctx *Context) CreateFont(name, filename string) *Font {
+	var cName = C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	var cFilename = C.CString(filename)
+	defer C.free(unsafe.Pointer(cFilename))
+
+	return &Font{
+		cFont: C.nvgCreateFont(ctx.c(), cName, cFilename),
+	}
+}
+
+// CreateFontMem creates a font by loading it from data, a memory chunk. Returns
+// a handle to the font.
+func (ctx *Context) CreateFontMem(name string, data []uint8, freeData int) *Font {
+	var cName = C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+
+	var dataLen = len(data)
+	var cData = make([]C.uchar, 0, dataLen)
+	for _, d := range data {
+		cData = append(cData, C.uchar(d))
+	}
+
+	return &Font{
+		cFont: C.nvgCreateFontMem(ctx.c(), cName, &cData[0], C.int(dataLen), C.int(freeData)),
+	}
+}
+
+// FindFont finds a loaded font with name, and returns a handle to it, or nil if
+// the font is not found.
+func (ctx *Context) FindFont(name string) *Font {
+	var cName = C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+
+	var cFont = C.nvgFindFont(ctx.c(), cName)
+	if int(cFont) != -1 {
+		return &Font{cFont: cFont}
+	}
+	return nil
+}
+
+// AddFallbackFontID adds a fallback font by its handle.
+func (ctx *Context) AddFallbackFontID(baseFont, fallbackFont *Font) {
+	C.nvgAddFallbackFontId(ctx.c(), baseFont.c(), fallbackFont.c())
+}
+
+// AddFallbackFont adds a fallback font by its name.
+func (ctx *Context) AddFallbackFont(baseFont, fallbackFont string) {
+	var cBaseFont = C.CString(baseFont)
+	defer C.free(unsafe.Pointer(cBaseFont))
+	var cFallbackFont = C.CString(fallbackFont)
+	defer C.free(unsafe.Pointer(cFallbackFont))
+
+	C.nvgAddFallbackFont(ctx.c(), cBaseFont, cFallbackFont)
+}
+
+// FontSize sets the font size of the current text style.
+func (ctx *Context) FontSize(size float32) {
+	C.nvgFontSize(ctx.c(), C.float(size))
+}
+
+// FontBlur sets the blur of the current text style.
+func (ctx *Context) FontBlur(blur float32) {
+	C.nvgFontBlur(ctx.c(), C.float(blur))
+}
+
+// TextLetterSpacing sets the letter spacing of the current text style.
+func (ctx *Context) TextLetterSpacing(spacing float32) {
+	C.nvgTextLetterSpacing(ctx.c(), C.float(spacing))
+}
+
+// TextLineHeight sets the proportional line height of the current text style.
+// The line height is specified as multiple of font size.
+func (ctx *Context) TextLineHeight(lineHeight float32) {
+	C.nvgTextLineHeight(ctx.c(), C.float(lineHeight))
+}
+
+// TextAlign sets the text align of the current text style, see Align for
+// options.
+func (ctx *Context) TextAlign(align Align) {
+	C.nvgTextAlign(ctx.c(), C.int(align))
+}
+
+// FontFaceID sets the font face of the current text style with a font handle.
+func (ctx *Context) FontFaceID(font *Font) {
+	C.nvgFontFaceId(ctx.c(), font.c())
+}
+
+// FontFace sets the font face of the current text style by the font name.
+func (ctx *Context) FontFace(font string) {
+	var cFont = C.CString(font)
+	defer C.free(unsafe.Pointer(cFont))
+
+	C.nvgFontFace(ctx.c(), cFont)
+}
+
+// Text draws text at location (x,y).
+func (ctx *Context) Text(x, y float32, text string) {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	C.nvgText(ctx.c(), C.float(x), C.float(y), cText, (*C.char)(C.NULL))
+}
+
+// TextBox draws multi-line text at location (x,y) wrapped at the width
+// breakRowWidth.
+//
+// White space is stripped at the beginning of the rows, the text is split at
+// word boundaries or when new-line characters are encountered.
+//
+// Words longer than the max width are split at the nearest character (i.e. no
+// hyphenation).
+func (ctx *Context) TextBox(x, y, breakRowWidth float32, text string) {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	C.nvgTextBox(ctx.c(), C.float(x), C.float(y), C.float(breakRowWidth), cText, (*C.char)(C.NULL))
+}
+
+// TextBounds measures the specified text. Returns the horizontal advance of the
+// measured text (i.e. where the next character should be drawn), and the
+// bounding box of the text. The bounds values are [xmin, ymin, xmax, ymax].
+//
+// Measured values are returned in local coordinate space.
+func (ctx *Context) TextBounds(x, y float32, text string) (float32, [4]float32) {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	var cBounds = make([]C.float, 0, 4)
+	var cAdvance = C.nvgTextBounds(ctx.c(), C.float(x), C.float(y), cText, (*C.char)(C.NULL), &cBounds[0])
+	var bounds [4]float32
+	for i := 0; i < 4; i++ {
+		bounds[i] = float32(cBounds[i])
+	}
+	return float32(cAdvance), bounds
+}
+
+// TextBoxBounds measures the specified multi-line text. Returns the bounding
+// box of the text. The bounds values are [xmin, ymin, xmax, ymax].
+//
+// Measured values are returned in local coordinate space.
+func (ctx *Context) TextBoxBounds(x, y, breakRowWidth float32, text string) [4]float32 {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	var cBounds = make([]C.float, 0, 4)
+	C.nvgTextBoxBounds(ctx.c(), C.float(x), C.float(y), C.float(breakRowWidth), cText, (*C.char)(C.NULL), &cBounds[0])
+	var bounds [4]float32
+	for i := 0; i < 4; i++ {
+		bounds[i] = float32(cBounds[i])
+	}
+	return bounds
+}
+
+// TextGlyphPositions calculates the glyph x position of text.
+//
+// Measured values are returned in local coordinate space.
+func (ctx *Context) TextGlyphPositions(x, y float32, text string, maxPositions int) []GlyphPosition {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	var cPositions = make([]C.NVGglyphPosition, 0, maxPositions)
+	var count = int(C.nvgTextGlyphPositions(ctx.c(), C.float(x), C.float(y), cText, (*C.char)(C.NULL), &cPositions[0], C.int(maxPositions)))
+	var positions = make([]GlyphPosition, 0, count)
+	for i := 0; i < count; i++ {
+		positions = append(positions, GlyphPosition(cPositions[i]))
+	}
+	return positions
+}
+
+// TextMetrics returns the vertical metrics based on the current text style.
+//
+// Measured values are returned in local coordinate space.
+func (ctx *Context) TextMetrics() (ascender, descender, lineh float32) {
+	var cAscender, cDescender, cLineh C.float
+	C.nvgTextMetrics(ctx.c(), &cAscender, &cDescender, &cLineh)
+	ascender, descender, lineh = float32(cAscender), float32(cDescender), float32(cLineh)
+	return
+}
+
+// TextBreakLines breaks the text into lines.
+//
+// White space is stripped at the beginning of the rows, the text is split at
+// word boundaries or when new-line characters are encountered.
+//
+// Words longer than the max width are split at the nearest character (i.e. no
+// hyphenation).
+func (ctx *Context) TextBreakLines(text string, breakRowWidth float32, maxRows int) []TextRow {
+	var cText = C.CString(text)
+	defer C.free(unsafe.Pointer(cText))
+
+	var cRows = make([]C.NVGtextRow, 0, maxRows)
+	var count = int(C.nvgTextBreakLines(ctx.c(), cText, (*C.char)(C.NULL), C.float(breakRowWidth), &cRows[0], C.int(maxRows)))
+	var rows = make([]TextRow, 0, count)
+	for i := 0; i < count; i++ {
+		rows = append(rows, TextRow(cRows[i]))
+	}
+	return rows
+}
