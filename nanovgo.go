@@ -787,3 +787,30 @@ func (ctx *Context) RadialGradient(centerX, centerY, innerRadius, outerRadius fl
 func (ctx *Context) ImagePattern(x, y, imageWidth, imageHeight, angle float32, image Image, alpha float32) Paint {
 	return Paint(C.nvgImagePattern(ctx.c(), C.float(x), C.float(y), C.float(imageWidth), C.float(imageHeight), C.float(angle), image.cImage, C.float(alpha)))
 }
+
+// Scissoring.
+//
+// Scissoring allows you to clip the rendering into a rectangle. This is useful
+// for various user interface cases like rendering a text edit or a timeline.
+
+// Scissor sets the current scissor rectangle. The scissor rectangle is
+// transformed by the current transform.
+func (ctx *Context) Scissor(x, y, width, height float32) {
+	C.nvgScissor(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height))
+}
+
+// IntersectScissor intersects the current scissor rectangle with the specified
+// rectangle. The scissor rectangle is transformed by the current transform.
+//
+// Note: in case the rotation of previous scissor rect differs from the current
+// one, the intersection will be done between the specified rectangle and the
+// previous scissor rectangle transformed in the current transform space. The
+// resulting shape is always rectangle.
+func (ctx *Context) IntersectScissor(x, y, width, height float32) {
+	C.nvgIntersectScissor(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height))
+}
+
+// ResetScissor resets and disables scissoring.
+func (ctx *Context) ResetScissor() {
+	C.nvgResetScissor(ctx.c())
+}
