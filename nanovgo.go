@@ -21,12 +21,16 @@ package nanovgo
 /*
 #cgo darwin LDFLAGS: -framework OpenGL
 #define NANOVG_GL3_IMPLEMENTATION
+#include <stdlib.h>
 #include <OpenGL/gl3.h>
 #include "nanovg/src/nanovg.h"
 #include "nanovg/src/nanovg_gl.h"
 #include "nanovg/src/nanovg_gl_utils.h"
 */
 import "C"
+import (
+	"unsafe"
+)
 
 // CreateFlag is a flag for creating NanoVGo contexts.
 type CreateFlag int
@@ -678,4 +682,76 @@ func DegToRad(deg float32) float32 {
 // RadToDeg converts radians to degrees.
 func RadToDeg(rad float32) float32 {
 	return float32(C.nvgRadToDeg(C.float(rad)))
+}
+
+// Images
+//
+// NanoVGo allows you to load JPG, PNG, PSD, TGA, PIC and GIF files to be used
+// for rendering. In addition you can upload your own image. The image loading
+// is provided by stb_image.
+// The parameter imageFlags is combination of flags defined in ImageFlag.
+
+// Image is a handle to an loaded image.
+type Image struct {
+	cImage C.int
+	ctx    *Context
+}
+
+// CreateImage creates an image by loading it from the disk from filename.
+// Returns a handle to the image.
+func (ctx *Context) CreateImage(filename string, imageFlags ImageFlag) Image {
+	cFilename := C.CString(filename)
+	defer C.free(unsafe.Pointer(cFilename))
+	return Image{
+		cImage: C.nvgCreateImage(ctx.c(), cFilename, C.int(imageFlags)),
+		ctx:    ctx,
+	}
+}
+
+// CreateImageMem creates an image by loading it from data, a chunk of memory.
+// Returns a handle to the image.
+func (ctx *Context) CreateImageMem(imageFlags ImageFlag, data []uint8) Image {
+	var dataLen = len(data)
+	var cData = make([]C.uchar, 0, dataLen)
+	for _, d := range data {
+		cData = append(cData, C.uchar(d))
+	}
+	return Image{
+		cImage: C.nvgCreateImageMem(ctx.c(), C.int(imageFlags), &cData[0], C.int(dataLen)),
+		ctx:    ctx,
+	}
+}
+
+// CreateImageRGBA creates an image from data. Returns a handle to the image.
+func (ctx *Context) CreateImageRGBA(width, height int, imageFlags ImageFlag, data []uint8) Image {
+	var cData = make([]C.uchar, 0, len(data))
+	for _, d := range data {
+		cData = append(cData, C.uchar(d))
+	}
+	return Image{
+		cImage: C.nvgCreateImageRGBA(ctx.c(), C.int(width), C.int(height), C.int(imageFlags), &cData[0]),
+		ctx:    ctx,
+	}
+}
+
+// UpdateImage updates image data.
+func (image Image) UpdateImage(data []uint8) {
+	var cData = make([]C.uchar, 0, len(data))
+	for _, d := range data {
+		cData = append(cData, C.uchar(d))
+	}
+	C.nvgUpdateImage(image.ctx.c(), image.cImage, &cData[0])
+}
+
+// Size returns the dimensions of image.
+func (image Image) Size() (width, height int) {
+	var cWidth, cHeight C.int
+	C.nvgImageSize(image.ctx.c(), image.cImage, &cWidth, &cHeight)
+	width, height = int(cWidth), int(cHeight)
+	return
+}
+
+// Delete deletes image.
+func (image Image) Delete() {
+	C.nvgDeleteImage(image.ctx.c(), image.cImage)
 }
