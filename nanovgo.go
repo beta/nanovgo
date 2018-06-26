@@ -814,3 +814,110 @@ func (ctx *Context) IntersectScissor(x, y, width, height float32) {
 func (ctx *Context) ResetScissor() {
 	C.nvgResetScissor(ctx.c())
 }
+
+// Paths.
+//
+// Drawing a new shape starts with Context.BeginPath(), it clears all the
+// currently defined paths. Then you define one or more paths and sub-paths
+// which describe the shape. There are functions to draw common shapes like
+// rectangles and circles, and lower level step-by-step functions, which allows
+// to define a path curve by curve.
+//
+// NanoVGo uses oven-odd fill rule to draw the shapes. Solid shapes should have
+// counter clockwise winding and holes should have counter clockwise order. To
+// specify winding of a path you can call Context.PathWinding(). This is useful
+// especially for the common shapes, which are drawn CCW.
+//
+// Finally you can fill the path using current fill style by calling
+// Context.Fill(), and stroke it with current stroke style by calling
+// Context.Stroke().
+//
+// The curve segments and sub-paths are transformed by the current transform.
+
+// BeginPath clears the current path and sub-paths.
+func (ctx *Context) BeginPath() {
+	C.nvgBeginPath(ctx.c())
+}
+
+// MoveTo starts a new sub-path with point (x,y) as the first point.
+func (ctx *Context) MoveTo(x, y float32) {
+	C.nvgMoveTo(ctx.c(), C.float(x), C.float(y))
+}
+
+// LineTo adds a line segment from the last point in the path to point (x,y).
+func (ctx *Context) LineTo(x, y float32) {
+	C.nvgLineTo(ctx.c(), C.float(x), C.float(y))
+}
+
+// BezierTo adds a cubic bezier segment from the last point in the path via two
+// control points ((c1X,c1Y) and (c2X,c2Y)) to point (x,y).
+func (ctx *Context) BezierTo(c1X, c1Y, c2X, c2Y, x, y float32) {
+	C.nvgBezierTo(ctx.c(), C.float(c1X), C.float(c1Y), C.float(c2X), C.float(c2Y), C.float(x), C.float(y))
+}
+
+// QuadTo adds a quadratic bezier segment from the last point in the path via a
+// control point (cX,cY) to point (x,y).
+func (ctx *Context) QuadTo(cX, cY, x, y float32) {
+	C.nvgQuadTo(ctx.c(), C.float(cX), C.float(cY), C.float(x), C.float(y))
+}
+
+// ArcTo adds an arc segment at the corner defined by the last path point, and
+// two points (x1,y1) and (x2,y2).
+func (ctx *Context) ArcTo(x1, y1, x2, y2, radius float32) {
+	C.nvgArcTo(ctx.c(), C.float(x1), C.float(y1), C.float(x2), C.float(y2), C.float(radius))
+}
+
+// ClosePath closes current sub-path with a line segment.
+func (ctx *Context) ClosePath() {
+	C.nvgClosePath(ctx.c())
+}
+
+// PathWinding sets the current sub-path winding, see Winding and Solidity.
+func (ctx *Context) PathWinding(direction int) {
+	C.nvgPathWinding(ctx.c(), C.int(direction))
+}
+
+// Arc creates a new circle arc shaped sub-path. The arc center is at (x,y), the
+// arc radius is radius, and the arc is drawn from angle angle0 to angle1, and
+// swept in direction direction (CCW or CW).
+//
+// Angles are specified in radians.
+func (ctx *Context) Arc(x, y, radius, angle0, angle1 float32, direction Winding) {
+	C.nvgArc(ctx.c(), C.float(x), C.float(y), C.float(radius), C.float(angle0), C.float(angle1), C.int(direction))
+}
+
+// Rect creates a new rectangle shaped sub-path.
+func (ctx *Context) Rect(x, y, width, height float32) {
+	C.nvgRect(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height))
+}
+
+// RoundedRect creates a new rounded rectangle shaped sub-path.
+func (ctx *Context) RoundedRect(x, y, width, height, radius float32) {
+	C.nvgRoundedRect(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height), C.float(radius))
+}
+
+// RoundedRectVarying creates a new rounded rectangle shaped sub-path with
+// varying radii for each corner.
+func (ctx *Context) RoundedRectVarying(x, y, width, height, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft float32) {
+	C.nvgRoundedRectVarying(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height), C.float(radiusTopLeft), C.float(radiusTopRight), C.float(radiusBottomRight), C.float(radiusBottomLeft))
+}
+
+// Ellipse creates a new ellipse shape sub-path. The center is at (x,y).
+func (ctx *Context) Ellipse(x, y, radiusX, radiusY float32) {
+	C.nvgEllipse(ctx.c(), C.float(x), C.float(y), C.float(radiusX), C.float(radiusY))
+}
+
+// Circle creates a new circle shaped sub-path. The center is at (x,y).
+func (ctx *Context) Circle(x, y, radius float32) {
+	C.nvgCircle(ctx.c(), C.float(x), C.float(y), C.float(radius))
+}
+
+// Fill fills the current path with the current fill style.
+func (ctx *Context) Fill() {
+	C.nvgFill(ctx.c())
+}
+
+// Stroke strokes the current path with the current stroke style.
+func (ctx *Context) Stroke() {
+	C.nvgStroke(ctx.c())
+}
