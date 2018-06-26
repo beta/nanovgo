@@ -6,6 +6,10 @@ NanoVGo is in an early stage. Frequent changes to the APIs are expected, which w
 
 Please note that NanoVGo is a Go binding created with Cgo, instead of a Go port. For a Go port of the NanoVG library, please refer to [shibukawa/nanovgo](https://github.com/shibukawa/nanovgo).
 
+## NanoVG Version
+
+Commit [`6fa3b3d`](https://github.com/memononen/nanovg/tree/6fa3b3d51981ef696a2deb63fe50e1d9d62ff6a9) (Apr 30, 2018).
+
 ## Credits
 
 NanoVGo uses the source code of [NanoVG](https://github.com/memononen/nanovg) under the zlib license.
