@@ -1,5 +1,7 @@
 # NanoVGo
 
+[![GoDoc](https://godoc.org/github.com/beta/nanovgo?status.svg)](https://godoc.org/github.com/beta/nanovgo)
+
 NanoVGo is a Go binding for [NanoVG](https://github.com/memononen/nanovg), a small antialiased vector graphics rendering library for OpenGL.
 
 NanoVGo is in an early stage. Frequent changes to the APIs are expected, which will become stable after the 1.0.0 version.
