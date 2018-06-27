@@ -133,7 +133,7 @@ func main() {
 
 		vg.BeginFrame(float32(winWidth), float32(winHeight), float32(pxRatio))
 
-		demo.render(vg, mx, my, float64(winWidth), float64(winHeight), t, blowup)
+		demo.render(vg, float32(mx), float32(my), float32(winWidth), float32(winHeight), t, blowup)
 
 		fps.Render(vg, 5, 5)
 		cpuGraph.Render(vg, 5+200+5, 5)
@@ -156,7 +156,7 @@ func main() {
 		ctx.PollEvents()
 	}
 
-	demo.free()
+	demo.free(vg)
 
 	fmt.Printf("Average Frame Time: %.2f ms\n", fps.Average()*1000.0)
 	fmt.Printf("          CPU Time: %.2f ms\n", cpuGraph.Average()*1000.0)
