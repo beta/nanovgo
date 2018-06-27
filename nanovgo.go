@@ -537,7 +537,7 @@ func (ctx *Context) Scale(x, y float32) {
 //     [b d f]
 //     [0 0 1]
 func (ctx *Context) CurrentTransform() [6]float32 {
-	cXform := make([]C.float, 0, 6)
+	cXform := make([]C.float, 6)
 	C.nvgCurrentTransform(ctx.c(), &cXform[0])
 	var xform [6]float32
 	for i, num := range cXform {
@@ -551,9 +551,9 @@ func (ctx *Context) CurrentTransform() [6]float32 {
 
 // TransformIdentity sets the transform to an identity matrix.
 func TransformIdentity(dst *[6]float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformIdentity(&cDst[0])
@@ -565,9 +565,9 @@ func TransformIdentity(dst *[6]float32) {
 
 // TransformTranslate sets the transform to a translation matrix.
 func TransformTranslate(dst *[6]float32, tx, ty float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformTranslate(&cDst[0], C.float(tx), C.float(ty))
@@ -579,9 +579,9 @@ func TransformTranslate(dst *[6]float32, tx, ty float32) {
 
 // TransformScale sets the transform to a scale matrix.
 func TransformScale(dst *[6]float32, sx, sy float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformScale(&cDst[0], C.float(sx), C.float(sy))
@@ -594,9 +594,9 @@ func TransformScale(dst *[6]float32, sx, sy float32) {
 // TransformRotate sets the transform to a rotate matrix. angle is specified in
 // radians.
 func TransformRotate(dst *[6]float32, angle float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformRotate(&cDst[0], C.float(angle))
@@ -609,9 +609,9 @@ func TransformRotate(dst *[6]float32, angle float32) {
 // TransformSkewX sets the transform to a skew-x matrix. angle is specified in
 // radians.
 func TransformSkewX(dst *[6]float32, angle float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformSkewX(&cDst[0], C.float(angle))
@@ -624,9 +624,9 @@ func TransformSkewX(dst *[6]float32, angle float32) {
 // TransformSkewY sets the transform to a skew-y matrix. angle is specified in
 // radians.
 func TransformSkewY(dst *[6]float32, angle float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
 
 	C.nvgTransformSkewY(&cDst[0], C.float(angle))
@@ -639,13 +639,13 @@ func TransformSkewY(dst *[6]float32, angle float32) {
 // TransformMultiply sets the transform to the result of multiplication of the
 // two transforms, of A = A*B.
 func TransformMultiply(dst *[6]float32, src [6]float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
-	cSrc := make([]C.float, 0, 6)
-	for _, num := range src {
-		cSrc = append(cSrc, C.float(num))
+	cSrc := make([]C.float, 6)
+	for i, num := range src {
+		cSrc[i] = C.float(num)
 	}
 
 	C.nvgTransformMultiply(&cDst[0], &cSrc[0])
@@ -658,13 +658,13 @@ func TransformMultiply(dst *[6]float32, src [6]float32) {
 // TransformPremultiply sets the transform to the result of multiplication of
 // the two transforms, of A = B*A.
 func TransformPremultiply(dst *[6]float32, src [6]float32) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
-	cSrc := make([]C.float, 0, 6)
-	for _, num := range src {
-		cSrc = append(cSrc, C.float(num))
+	cSrc := make([]C.float, 6)
+	for i, num := range src {
+		cSrc[i] = C.float(num)
 	}
 
 	C.nvgTransformPremultiply(&cDst[0], &cSrc[0])
@@ -677,13 +677,13 @@ func TransformPremultiply(dst *[6]float32, src [6]float32) {
 // TransformInverse sets dst to the inverse of src. Returns true if the inverse
 // could be calculated, else false.
 func TransformInverse(dst *[6]float32, src [6]float32) (succeeded bool) {
-	cDst := make([]C.float, 0, 6)
-	for _, num := range *dst {
-		cDst = append(cDst, C.float(num))
+	cDst := make([]C.float, 6)
+	for i, num := range *dst {
+		cDst[i] = C.float(num)
 	}
-	cSrc := make([]C.float, 0, 6)
-	for _, num := range src {
-		cSrc = append(cSrc, C.float(num))
+	cSrc := make([]C.float, 6)
+	for i, num := range src {
+		cSrc[i] = C.float(num)
 	}
 
 	succeeded = int(C.nvgTransformInverse(&cDst[0], &cSrc[0])) == 1
@@ -697,9 +697,9 @@ func TransformInverse(dst *[6]float32, src [6]float32) (succeeded bool) {
 
 // TransformPoint transforms a point (srcX,srcY) by xform.
 func TransformPoint(xform [6]float32, srcX, srcY float32) (dstX, dstY float32) {
-	cXform := make([]C.float, 0, 6)
-	for _, num := range xform {
-		cXform = append(cXform, C.float(num))
+	cXform := make([]C.float, 6)
+	for i, num := range xform {
+		cXform[i] = C.float(num)
 	}
 	var cDstX, cDstY C.float
 
@@ -751,9 +751,9 @@ func (ctx *Context) CreateImage(filename string, imageFlags ImageFlag) *Image {
 // Returns a handle to the image.
 func (ctx *Context) CreateImageMem(imageFlags ImageFlag, data []uint8) *Image {
 	var dataLen = len(data)
-	var cData = make([]C.uchar, 0, dataLen)
-	for _, d := range data {
-		cData = append(cData, C.uchar(d))
+	var cData = make([]C.uchar, dataLen)
+	for i, d := range data {
+		cData[i] = C.uchar(d)
 	}
 	return &Image{
 		cImage: C.nvgCreateImageMem(ctx.c(), C.int(imageFlags), &cData[0], C.int(dataLen)),
@@ -763,9 +763,9 @@ func (ctx *Context) CreateImageMem(imageFlags ImageFlag, data []uint8) *Image {
 
 // CreateImageRGBA creates an image from data. Returns a handle to the image.
 func (ctx *Context) CreateImageRGBA(width, height int, imageFlags ImageFlag, data []uint8) *Image {
-	var cData = make([]C.uchar, 0, len(data))
-	for _, d := range data {
-		cData = append(cData, C.uchar(d))
+	var cData = make([]C.uchar, len(data))
+	for i, d := range data {
+		cData[i] = C.uchar(d)
 	}
 	return &Image{
 		cImage: C.nvgCreateImageRGBA(ctx.c(), C.int(width), C.int(height), C.int(imageFlags), &cData[0]),
@@ -775,9 +775,9 @@ func (ctx *Context) CreateImageRGBA(width, height int, imageFlags ImageFlag, dat
 
 // UpdateImage updates image data.
 func (image *Image) UpdateImage(data []uint8) {
-	var cData = make([]C.uchar, 0, len(data))
-	for _, d := range data {
-		cData = append(cData, C.uchar(d))
+	var cData = make([]C.uchar, len(data))
+	for i, d := range data {
+		cData[i] = C.uchar(d)
 	}
 	C.nvgUpdateImage(image.ctx.c(), image.c(), &cData[0])
 }
@@ -1043,9 +1043,9 @@ func (ctx *Context) CreateFontMem(name string, data []uint8, freeData int) *Font
 	defer C.free(unsafe.Pointer(cName))
 
 	var dataLen = len(data)
-	var cData = make([]C.uchar, 0, dataLen)
-	for _, d := range data {
-		cData = append(cData, C.uchar(d))
+	var cData = make([]C.uchar, dataLen)
+	for i, d := range data {
+		cData[i] = C.uchar(d)
 	}
 
 	return &Font{
@@ -1153,7 +1153,7 @@ func (ctx *Context) TextBounds(x, y float32, text string) (float32, [4]float32) 
 	var cText = C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
 
-	var cBounds = make([]C.float, 0, 4)
+	var cBounds = make([]C.float, 4)
 	var cAdvance = C.nvgTextBounds(ctx.c(), C.float(x), C.float(y), cText, (*C.char)(C.NULL), &cBounds[0])
 	var bounds [4]float32
 	for i := 0; i < 4; i++ {
@@ -1170,7 +1170,7 @@ func (ctx *Context) TextBoxBounds(x, y, breakRowWidth float32, text string) [4]f
 	var cText = C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
 
-	var cBounds = make([]C.float, 0, 4)
+	var cBounds = make([]C.float, 4)
 	C.nvgTextBoxBounds(ctx.c(), C.float(x), C.float(y), C.float(breakRowWidth), cText, (*C.char)(C.NULL), &cBounds[0])
 	var bounds [4]float32
 	for i := 0; i < 4; i++ {
@@ -1186,7 +1186,7 @@ func (ctx *Context) TextGlyphPositions(x, y float32, text string, maxPositions i
 	var cText = C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
 
-	var cPositions = make([]C.NVGglyphPosition, 0, maxPositions)
+	var cPositions = make([]C.NVGglyphPosition, maxPositions)
 	var count = int(C.nvgTextGlyphPositions(ctx.c(), C.float(x), C.float(y), cText, (*C.char)(C.NULL), &cPositions[0], C.int(maxPositions)))
 	var positions = make([]GlyphPosition, 0, count)
 	for i := 0; i < count; i++ {
@@ -1216,7 +1216,7 @@ func (ctx *Context) TextBreakLines(text string, breakRowWidth float32, maxRows i
 	var cText = C.CString(text)
 	defer C.free(unsafe.Pointer(cText))
 
-	var cRows = make([]C.NVGtextRow, 0, maxRows)
+	var cRows = make([]C.NVGtextRow, maxRows)
 	var count = int(C.nvgTextBreakLines(ctx.c(), cText, (*C.char)(C.NULL), C.float(breakRowWidth), &cRows[0], C.int(maxRows)))
 	var rows = make([]TextRow, 0, count)
 	for i := 0; i < count; i++ {
