@@ -123,15 +123,12 @@ const (
 	CW Winding = C.NVG_CW
 )
 
-// Solidity specifies whether a shape is solid has a hole.
-type Solidity int
-
 // Solidities.
 const (
 	// Solid is for CCW.
-	Solid Solidity = C.NVG_SOLID
+	Solid Winding = C.NVG_SOLID
 	// Hole is for CW.
-	Hole Solidity = C.NVG_HOLE
+	Hole Winding = C.NVG_HOLE
 )
 
 // LineCap specifies the style of line caps.
@@ -307,10 +304,20 @@ func RGB(r, g, b uint8) Color {
 	return Color(C.nvgRGB(C.uchar(r), C.uchar(g), C.uchar(b)))
 }
 
+// RGB is a shortcut for calling RGB() with ctx.
+func (ctx *Context) RGB(r, g, b uint8) Color {
+	return RGB(r, g, b)
+}
+
 // RGBf returns a color value from red, green and blue values. Alpha will be set
 // to 1.0f.
 func RGBf(r, g, b float32) Color {
 	return Color(C.nvgRGBf(C.float(r), C.float(g), C.float(b)))
+}
+
+// RGBf is a shortcut for calling RGBf() with ctx.
+func (ctx *Context) RGBf(r, g, b float32) Color {
+	return RGBf(r, g, b)
 }
 
 // RGBA returns a color value from red, green, blue and alpha values.
@@ -318,9 +325,19 @@ func RGBA(r, g, b, a uint8) Color {
 	return Color(C.nvgRGBA(C.uchar(r), C.uchar(g), C.uchar(b), C.uchar(a)))
 }
 
+// RGBA is a shortcut for calling RGBA() with ctx.
+func (ctx *Context) RGBA(r, g, b, a uint8) Color {
+	return RGBA(r, g, b, a)
+}
+
 // RGBAf returns a color value from red, green, blue and alpha values.
 func RGBAf(r, g, b, a float32) Color {
 	return Color(C.nvgRGBAf(C.float(r), C.float(g), C.float(b), C.float(a)))
+}
+
+// RBGAf is a shortcut for calling RGBAf() with ctx.
+func (ctx *Context) RGBAf(r, g, b, a float32) Color {
+	return RGBAf(r, g, b, a)
 }
 
 // LerpRGBA linearly interpolates from c0 to c1, and returns resulting color
@@ -915,8 +932,8 @@ func (ctx *Context) ClosePath() {
 	C.nvgClosePath(ctx.c())
 }
 
-// PathWinding sets the current sub-path winding, see Winding and Solidity.
-func (ctx *Context) PathWinding(direction int) {
+// PathWinding sets the current sub-path winding, see Winding.
+func (ctx *Context) PathWinding(direction Winding) {
 	C.nvgPathWinding(ctx.c(), C.int(direction))
 }
 
