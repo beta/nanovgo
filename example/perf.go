@@ -76,7 +76,7 @@ func (fps *PerfGraph) Render(ctx *nanovgo.Context, x, y float32) {
 
 	ctx.BeginPath()
 	ctx.Rect(x, y, width, height)
-	ctx.FillColor(ctx.RGBA(0, 0, 0, 128))
+	ctx.FillColor(nanovgo.RGBA(0, 0, 0, 128))
 	ctx.Fill()
 
 	ctx.BeginPath()
@@ -113,7 +113,7 @@ func (fps *PerfGraph) Render(ctx *nanovgo.Context, x, y float32) {
 		}
 	}
 	ctx.LineTo(x+width, y+height)
-	ctx.FillColor(ctx.RGBA(255, 192, 0, 128))
+	ctx.FillColor(nanovgo.RGBA(255, 192, 0, 128))
 	ctx.Fill()
 
 	ctx.FontFace("sans")
@@ -121,29 +121,29 @@ func (fps *PerfGraph) Render(ctx *nanovgo.Context, x, y float32) {
 	if len(fps.name) > 0 {
 		ctx.FontSize(14.0)
 		ctx.TextAlign(nanovgo.AlignLeft | nanovgo.AlignTop)
-		ctx.FillColor(ctx.RGBA(240, 240, 240, 192))
+		ctx.FillColor(nanovgo.RGBA(240, 240, 240, 192))
 		ctx.Text(x+3, y+1, fps.name)
 	}
 
 	if fps.style == GraphRenderFPS {
 		ctx.FontSize(18.0)
 		ctx.TextAlign(nanovgo.AlignRight | nanovgo.AlignTop)
-		ctx.FillColor(ctx.RGBA(240, 240, 240, 255))
+		ctx.FillColor(nanovgo.RGBA(240, 240, 240, 255))
 		ctx.Text(x+width-3, y+1, fmt.Sprintf("%.2f FPS", 1.0/avg))
 
 		ctx.FontSize(15.0)
 		ctx.TextAlign(nanovgo.AlignRight | nanovgo.AlignBottom)
-		ctx.FillColor(ctx.RGBA(240, 240, 240, 160))
+		ctx.FillColor(nanovgo.RGBA(240, 240, 240, 160))
 		ctx.Text(x+width-3, y+height-1, fmt.Sprintf("%.2f ms", avg*1000.0))
 	} else if fps.style == GraphRenderPercent {
 		ctx.FontSize(18.0)
 		ctx.TextAlign(nanovgo.AlignRight | nanovgo.AlignTop)
-		ctx.FillColor(ctx.RGBA(240, 240, 240, 255))
+		ctx.FillColor(nanovgo.RGBA(240, 240, 240, 255))
 		ctx.Text(x+width-3, y+1, fmt.Sprintf("%.1f %%", avg*1.0))
 	} else {
 		ctx.FontSize(18.0)
 		ctx.TextAlign(nanovgo.AlignRight | nanovgo.AlignTop)
-		ctx.FillColor(ctx.RGBA(240, 240, 240, 255))
+		ctx.FillColor(nanovgo.RGBA(240, 240, 240, 255))
 		ctx.Text(x+width-3, y+1, fmt.Sprintf("%.2f ms", avg*1000.0))
 	}
 }
