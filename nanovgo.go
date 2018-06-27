@@ -217,11 +217,53 @@ func (pos GlyphPosition) c() C.NVGglyphPosition {
 	return C.NVGglyphPosition(pos)
 }
 
+// X returns the x-coordinate of the logical glyph position.
+func (pos GlyphPosition) X() float32 {
+	return float32(pos.c().x)
+}
+
+// MinX returns the bounds of the glyph shape.
+func (pos GlyphPosition) MinX() float32 {
+	return float32(pos.c().minx)
+}
+
+// MaxX returns the bounds of the glyph shape.
+func (pos GlyphPosition) MaxX() float32 {
+	return float32(pos.c().maxx)
+}
+
 // TextRow stores the range, width and position of a row of text.
 type TextRow C.NVGtextRow
 
 func (row TextRow) c() C.NVGtextRow {
 	return C.NVGtextRow(row)
+}
+
+// Width returns the logical width of row.
+func (row TextRow) Width() float32 {
+	return float32(row.c().width)
+}
+
+// MinX returns the actual bounds of row. Logical width and bounds can differ
+// because of kerning and some parts over extending.
+func (row TextRow) MinX() float32 {
+	return float32(row.c().minx)
+}
+
+// MaxX returns the actual bounds of row. Logical width and bounds can differ
+// because of kerning and some parts over extending.
+func (row TextRow) MaxX() float32 {
+	return float32(row.c().maxx)
+}
+
+// Text returns the text of row.
+func (row TextRow) Text() string {
+	return C.GoStringN(row.c().start, C.int(uintptr(unsafe.Pointer(row.c().end))-uintptr(unsafe.Pointer(row.c().start))))
+}
+
+// Next returns the remaining text.
+func (row TextRow) Next() string {
+	return C.GoString(row.c().next)
 }
 
 // ImageFlag indicates how images should be processed.
