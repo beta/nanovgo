@@ -29,6 +29,22 @@ package nanovgo
 #include "nanovg/src/nanovg.h"
 #include "nanovg/src/nanovg_gl.h"
 #include "nanovg/src/nanovg_gl_utils.h"
+
+static float color_r(NVGcolor color) {
+	return color.r;
+}
+
+static float color_g(NVGcolor color) {
+	return color.g;
+}
+
+static float color_b(NVGcolor color) {
+	return color.b;
+}
+
+static float color_a(NVGcolor color) {
+	return color.a;
+}
 */
 import "C"
 import (
@@ -67,6 +83,26 @@ type Color C.NVGcolor
 
 func (color Color) c() C.NVGcolor {
 	return C.NVGcolor(color)
+}
+
+// R returns the red value of color.
+func (color Color) R() float32 {
+	return float32(C.color_r(color.c()))
+}
+
+// G returns the green value of color.
+func (color Color) G() float32 {
+	return float32(C.color_g(color.c()))
+}
+
+// B returns the blue value of color.
+func (color Color) B() float32 {
+	return float32(C.color_b(color.c()))
+}
+
+// A returns the alpha value of color.
+func (color Color) A() float32 {
+	return float32(C.color_a(color.c()))
 }
 
 // Paint is a paint style used for painting.
