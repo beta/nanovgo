@@ -844,7 +844,7 @@ func (ctx *Context) RadialGradient(centerX, centerY, innerRadius, outerRadius fl
 //
 // The gradient is transformed by the current transform when it is passed to
 // Context.FillPaint() or Context.StrokePaint().
-func (ctx *Context) ImagePattern(x, y, imageWidth, imageHeight, angle float32, image Image, alpha float32) Paint {
+func (ctx *Context) ImagePattern(x, y, imageWidth, imageHeight, angle float32, image *Image, alpha float32) Paint {
 	return Paint(C.nvgImagePattern(ctx.c(), C.float(x), C.float(y), C.float(imageWidth), C.float(imageHeight), C.float(angle), image.cImage, C.float(alpha)))
 }
 
