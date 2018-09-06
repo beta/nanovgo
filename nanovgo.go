@@ -29,25 +29,10 @@ package nanovgo
 #include "nanovg/src/nanovg.h"
 #include "nanovg/src/nanovg_gl.h"
 #include "nanovg/src/nanovg_gl_utils.h"
-
-static float color_r(NVGcolor color) {
-	return color.r;
-}
-
-static float color_g(NVGcolor color) {
-	return color.g;
-}
-
-static float color_b(NVGcolor color) {
-	return color.b;
-}
-
-static float color_a(NVGcolor color) {
-	return color.a;
-}
 */
 import "C"
 import (
+	"image/color"
 	"unsafe"
 )
 
@@ -78,31 +63,9 @@ func (ctx *Context) Delete() {
 	C.nvgDeleteGL3((*C.NVGcontext)(ctx))
 }
 
-// Color is an RGBA color, each color channel represented as a float32.
-type Color C.NVGcolor
-
-func (color Color) c() C.NVGcolor {
-	return C.NVGcolor(color)
-}
-
-// R returns the red value of color.
-func (color Color) R() float32 {
-	return float32(C.color_r(color.c()))
-}
-
-// G returns the green value of color.
-func (color Color) G() float32 {
-	return float32(C.color_g(color.c()))
-}
-
-// B returns the blue value of color.
-func (color Color) B() float32 {
-	return float32(C.color_b(color.c()))
-}
-
-// A returns the alpha value of color.
-func (color Color) A() float32 {
-	return float32(C.color_a(color.c()))
+func toNVGColor(c color.Color) C.NVGcolor {
+	r, g, b, a := c.RGBA()
+	return C.nvgRGBA(C.uchar(r), C.uchar(g), C.uchar(b), C.uchar(a))
 }
 
 // Paint is a paint style used for painting.
@@ -336,62 +299,6 @@ func (ctx *Context) GlobalCompositeBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, d
 	C.nvgGlobalCompositeBlendFuncSeparate(ctx.c(), C.int(srcRGB), C.int(dstRGB), C.int(srcAlpha), C.int(dstAlpha))
 }
 
-// Color utils.
-//
-// Colors in NanoVGo are stored as unsigned ints in ABGR format.
-
-// RGB returns a color value from red, green and blue values. Alpha will be set
-// to 255 (1.0f).
-func RGB(r, g, b uint8) Color {
-	return Color(C.nvgRGB(C.uchar(r), C.uchar(g), C.uchar(b)))
-}
-
-// RGBf returns a color value from red, green and blue values. Alpha will be set
-// to 1.0f.
-func RGBf(r, g, b float32) Color {
-	return Color(C.nvgRGBf(C.float(r), C.float(g), C.float(b)))
-}
-
-// RGBA returns a color value from red, green, blue and alpha values.
-func RGBA(r, g, b, a uint8) Color {
-	return Color(C.nvgRGBA(C.uchar(r), C.uchar(g), C.uchar(b), C.uchar(a)))
-}
-
-// RGBAf returns a color value from red, green, blue and alpha values.
-func RGBAf(r, g, b, a float32) Color {
-	return Color(C.nvgRGBAf(C.float(r), C.float(g), C.float(b), C.float(a)))
-}
-
-// LerpRGBA linearly interpolates from c0 to c1, and returns resulting color
-// value.
-func LerpRGBA(c0, c1 Color, u float32) Color {
-	return Color(C.nvgLerpRGBA(c0.c(), c1.c(), C.float(u)))
-}
-
-// TransRGBA sets transparency of c, and returns the resulting color value.
-func TransRGBA(c Color, a uint8) Color {
-	return Color(C.nvgTransRGBA(c.c(), C.uchar(a)))
-}
-
-// TransRGBAf sets transparency of c, and returns the resulting color value.
-func TransRGBAf(c Color, a float32) Color {
-	return Color(C.nvgTransRGBAf(c.c(), C.float(a)))
-}
-
-// HSL returns a color value specified by hue, saturation and lightness.
-//
-// HSL values are all in range [0..1], alpha will be set to 255.
-func HSL(h, s, l float32) Color {
-	return Color(C.nvgHSL(C.float(h), C.float(s), C.float(l)))
-}
-
-// HSLA returns a color value specified by hue, saturation, lightness and alpha.
-//
-// HSL values are all in range [0..1], alpah in range [0..255].
-func HSLA(h, s, l float32, a uint8) Color {
-	return Color(C.nvgHSLA(C.float(h), C.float(s), C.float(l), C.uchar(a)))
-}
-
 // State handling.
 //
 // NanoVGo contains states which represent how paths will be rendered. The state
@@ -437,8 +344,8 @@ func (ctx *Context) ShapeAntialias(enabled bool) {
 }
 
 // StrokeColor sets the current stroke style to a solid color.
-func (ctx *Context) StrokeColor(color Color) {
-	C.nvgStrokeColor(ctx.c(), color.c())
+func (ctx *Context) StrokeColor(color color.Color) {
+	C.nvgStrokeColor(ctx.c(), toNVGColor(color))
 }
 
 // StrokePaint sets the current stroke style to a paint, which can be one of the
@@ -448,8 +355,8 @@ func (ctx *Context) StrokePaint(paint Paint) {
 }
 
 // FillColor sets the current fill style to a solid color.
-func (ctx *Context) FillColor(color Color) {
-	C.nvgFillColor(ctx.c(), color.c())
+func (ctx *Context) FillColor(color color.Color) {
+	C.nvgFillColor(ctx.c(), toNVGColor(color))
 }
 
 // FillPaint sets the current fill style to a pint, which can be one of the
@@ -830,8 +737,8 @@ func (image *Image) Delete() {
 //
 // The gradient is transformed by the current transform when it is passed to
 // Context.FillPaint() or Context.StrokePaint().
-func (ctx *Context) LinearGradient(startX, startY, endX, endY float32, startColor, endColor Color) Paint {
-	return Paint(C.nvgLinearGradient(ctx.c(), C.float(startX), C.float(startY), C.float(endX), C.float(endY), startColor.c(), endColor.c()))
+func (ctx *Context) LinearGradient(startX, startY, endX, endY float32, startColor, endColor color.Color) Paint {
+	return Paint(C.nvgLinearGradient(ctx.c(), C.float(startX), C.float(startY), C.float(endX), C.float(endY), toNVGColor(startColor), toNVGColor(endColor)))
 }
 
 // BoxGradient creates and returns a box gradient. A box gradient is a feathered
@@ -844,8 +751,8 @@ func (ctx *Context) LinearGradient(startX, startY, endX, endY float32, startColo
 //
 // The gradient is transformed by the current transform when it is passed to
 // Context.FillPaint() or Context.StrokePaint().
-func (ctx *Context) BoxGradient(x, y, width, height, radius, feather float32, innerColor, outerColor Color) Paint {
-	return Paint(C.nvgBoxGradient(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height), C.float(radius), C.float(feather), innerColor.c(), outerColor.c()))
+func (ctx *Context) BoxGradient(x, y, width, height, radius, feather float32, innerColor, outerColor color.Color) Paint {
+	return Paint(C.nvgBoxGradient(ctx.c(), C.float(x), C.float(y), C.float(width), C.float(height), C.float(radius), C.float(feather), toNVGColor(innerColor), toNVGColor(outerColor)))
 }
 
 // RadialGradient creates and returns a radian gradient. Parameters
@@ -855,8 +762,8 @@ func (ctx *Context) BoxGradient(x, y, width, height, radius, feather float32, in
 //
 // The gradient is transformed by the current transform when it is passed to
 // Context.FillPaint() or Context.StrokePaint().
-func (ctx *Context) RadialGradient(centerX, centerY, innerRadius, outerRadius float32, startColor, endColor Color) Paint {
-	return Paint(C.nvgRadialGradient(ctx.c(), C.float(centerX), C.float(centerY), C.float(innerRadius), C.float(outerRadius), startColor.c(), endColor.c()))
+func (ctx *Context) RadialGradient(centerX, centerY, innerRadius, outerRadius float32, startColor, endColor color.Color) Paint {
+	return Paint(C.nvgRadialGradient(ctx.c(), C.float(centerX), C.float(centerY), C.float(innerRadius), C.float(outerRadius), toNVGColor(startColor), toNVGColor(endColor)))
 }
 
 // ImagePattern creates and returns an image pattern. Parameters (x,y) specify
