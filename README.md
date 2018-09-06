@@ -10,7 +10,7 @@ Please note that NanoVGo is a Go binding created with Cgo, instead of a Go port.
 
 ## NanoVG Version
 
-Commit [`6fa3b3d`](https://github.com/memononen/nanovg/tree/6fa3b3d51981ef696a2deb63fe50e1d9d62ff6a9) (Apr 30, 2018).
+Commit [`cfa175a`](https://github.com/memononen/nanovg/tree/cfa175a0b990a36fbdf210d76429a75fda03b4a7) (Sep 2, 2018).
 
 ## Credits
 
